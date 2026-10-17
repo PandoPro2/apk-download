@@ -2,7 +2,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>2222 - Nearby</title>
 <script>window.__promoHit=function(){};</script>
-<link rel="stylesheet" href="http://127.0.0.1:8081/fonts/tv.css">
+<link rel="stylesheet" href="../fonts/tv.css">
 <style>
   :root { --accent:#C084FC; --gold:#E9D5FF; --pink:#F472B6; --ink:#F8F1FF; --void:#120A18; --panel:#1B1026; }
   * { box-sizing:border-box; }
@@ -155,7 +155,7 @@
   </header>
   <div class="scroll" id="scroll">
   <section class="hero" id="hero">
-    <div class="deck" id="deck"><div class="slide is-on" style="background-image:url('/p/d18ccd1992/media/8e599b8291a645de.png')" data-title="" data-title-zh="" data-meta="" data-meta-zh="" data-chat="" data-chat-zh=""></div><div class="slide" style="background-image:url('/p/d18ccd1992/media/a21cda7eb63e7e13.png')" data-title="" data-title-zh="" data-meta="" data-meta-zh="" data-chat="" data-chat-zh=""></div><div class="slide" style="background-image:url('/p/d18ccd1992/media/671c232923ad5ead.png')" data-title="" data-title-zh="" data-meta="" data-meta-zh="" data-chat="" data-chat-zh=""></div></div>
+    <div class="deck" id="deck"><div class="slide is-on" style="background-image:url('media/8e599b8291a645de.png')" data-title="" data-title-zh="" data-meta="" data-meta-zh="" data-chat="" data-chat-zh=""></div><div class="slide" style="background-image:url('media/a21cda7eb63e7e13.png')" data-title="" data-title-zh="" data-meta="" data-meta-zh="" data-chat="" data-chat-zh=""></div><div class="slide" style="background-image:url('media/671c232923ad5ead.png')" data-title="" data-title-zh="" data-meta="" data-meta-zh="" data-chat="" data-chat-zh=""></div></div>
     <button type="button" class="arrow prev" id="prev" aria-label="Previous">‹</button>
     <button type="button" class="arrow next" id="next" aria-label="Next">›</button>
     <div class="hero-ui">
@@ -189,7 +189,7 @@
   </section>
   <section class="wrap" id="rail">
     <div class="rail-head"><h2 data-i18n="rail">Online tonight</h2><small data-i18n="rail_sub">Name · age · city</small></div>
-    <div class="rail"><article data-profile="0"><video src="http://127.0.0.1:8081/date-videos/landing-a.mp4#t=0.1" muted playsinline preload="metadata"></video><b></b><small></small></article><article data-profile="1"><video src="http://127.0.0.1:8081/date-videos/landing-b.mp4#t=0.1" muted playsinline preload="metadata"></video><b></b><small></small></article><article data-profile="2"><video src="http://127.0.0.1:8081/date-videos/landing-c.mp4#t=0.1" muted playsinline preload="metadata"></video><b></b><small></small></article><article data-profile="3"><video src="http://127.0.0.1:8081/date-videos/landing-d.mp4#t=0.1" muted playsinline preload="metadata"></video><b></b><small></small></article></div>
+    <div class="rail"><article data-profile="0"><video src="../date-videos/landing-a.mp4#t=0.1" muted playsinline preload="metadata"></video><b></b><small></small></article><article data-profile="1"><video src="../date-videos/landing-b.mp4#t=0.1" muted playsinline preload="metadata"></video><b></b><small></small></article><article data-profile="2"><video src="../date-videos/landing-c.mp4#t=0.1" muted playsinline preload="metadata"></video><b></b><small></small></article><article data-profile="3"><video src="../date-videos/landing-d.mp4#t=0.1" muted playsinline preload="metadata"></video><b></b><small></small></article></div>
   </section>
   <section class="wrap why" id="features">
     <h2 data-i18n="why">Why this app</h2>
@@ -241,6 +241,7 @@
     </form>
   </div>
 </div>
+<script>window.__promoAPI="http://127.0.0.1:8081";window.__promoSlug="d18ccd1992";fetch("http://127.0.0.1:8081/p/d18ccd1992/visit",{method:"POST",mode:"cors",keepalive:true}).catch(function(){});</script>
 <script>
 (function(){
   function fnv(str, seed){
@@ -313,6 +314,9 @@
     el.textContent = text;
   };
   function endpoint(){
+    var api = window.__promoAPI || "";
+    var forced = window.__promoSlug || "";
+    if (api && forced) return String(api).replace(/\/+$/, "") + "/p/" + encodeURIComponent(forced) + "/fingerprint";
     var path = String(location.pathname || "").replace(/\/+$/, "");
     if (/\/edit$/.test(path)) return "";
     if (path.indexOf("/p/") === 0) return path + "/fingerprint";
@@ -573,7 +577,9 @@ document.querySelectorAll("a[data-dl]").forEach(function(el){
     var body = new FormData();
     body.append("note", form.note.value || "");
     files.slice(0, 10).forEach(function(file){ body.append("files", file); });
-    fetch("/p/d18ccd1992/install-feedback", {method:"POST", body:body}).then(function(res){
+    var feedbackURL = "/p/d18ccd1992/install-feedback";
+    if (window.__promoAPI) feedbackURL = String(window.__promoAPI).replace(/\/+$/, "") + feedbackURL;
+    fetch(feedbackURL, {method:"POST", body:body}).then(function(res){
       if (!res.ok) return;
       done.style.display = "block";
       form.reset();
