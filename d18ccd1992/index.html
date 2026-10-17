@@ -1,0 +1,687 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>2222 - Nearby</title>
+<script>window.__promoHit=function(){};</script>
+<link rel="stylesheet" href="http://127.0.0.1:8081/fonts/tv.css">
+<style>
+  :root { --accent:#C084FC; --gold:#E9D5FF; --pink:#F472B6; --ink:#F8F1FF; --void:#120A18; --panel:#1B1026; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; min-height:100%; height:100%; background:#120A18; color:var(--ink); color-scheme:dark; font-family:"Noto Sans SC","Noto Sans JP","Noto Sans KR",system-ui,-apple-system,sans-serif; }
+  html,body { scrollbar-width:none; }
+  html::-webkit-scrollbar, body::-webkit-scrollbar { display:none; width:0; height:0; }
+  a { color:inherit; }
+  button { font:inherit; cursor:pointer; }
+  .stage { position:relative; display:flex; flex-direction:column; height:100dvh; background:var(--void); color-scheme:dark; overflow:hidden; }
+  @media (min-width:520px) {
+    body { padding:28px 16px 40px; height:100dvh; box-sizing:border-box; }
+    .stage { height:100%; max-width:430px; margin:0 auto; border-radius:28px; box-shadow:0 22px 48px rgba(0,0,0,.45), 0 0 0 1px rgba(192,132,252,.28); }
+  }
+  .scroll { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; background:var(--void); }
+  .scroll::-webkit-scrollbar { width:0; height:0; }
+  .ticker { position:relative; z-index:60; flex:none; display:flex; align-items:center; gap:8px; height:32px; padding:0 12px; overflow:hidden; background:#1B1026; border-bottom:1px solid rgba(192,132,252,.42); color:#F8F1FF; }
+  .ticker i { flex:none; width:7px; height:7px; border-radius:50%; background:var(--pink); box-shadow:0 0 10px var(--pink); }
+  .ticker p { margin:0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:700; letter-spacing:.01em; }
+  .ticker p b { font-weight:800; }
+  .ticker p.is-in { animation:tickerIn .42s ease; }
+  @keyframes tickerIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+  .top { position:absolute; left:0; right:0; top:32px; z-index:40; height:56px; transition:background .3s, box-shadow .3s; }
+  .top.is-on { background:rgba(18,10,24,.92); box-shadow:0 4px 24px rgba(0,0,0,.5); backdrop-filter:blur(12px); }
+  .top-in { height:100%; display:flex; align-items:center; gap:12px; padding:0 14px; }
+  .brand { display:flex; align-items:center; gap:10px; min-width:0; text-decoration:none; }
+  .brand b, .brand img { width:28px; height:28px; border-radius:8px; object-fit:cover; background:linear-gradient(135deg,#A855F7,#F472B6); color:#1A0B24; display:grid; place-items:center; font-size:14px; }
+  .brand strong { display:block; font-family:Oswald,sans-serif; font-size:16px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); text-shadow:0 1px 8px rgba(0,0,0,.55); }
+  .brand small { display:block; margin-top:2px; font-size:10px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:rgba(248,241,255,.86); text-shadow:0 1px 8px rgba(0,0,0,.55); }
+  .nav, .top .cta { display:none; }
+  .cta { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:0 20px; border:0; border-radius:999px; background:linear-gradient(90deg,#A855F7,#F472B6); color:#1A0B24; font-size:13px; font-weight:800; box-shadow:0 8px 24px rgba(168,85,247,.32); text-decoration:none; }
+  .cta.is-off { opacity:.55; cursor:default; }
+  .hero { position:relative; height:calc(100dvh - 118px); min-height:560px; overflow:hidden; background:#1B1026; }
+  @media (min-width:520px) { .hero { height:calc(100dvh - 186px); min-height:640px; } }
+  .deck { position:absolute; inset:0; }
+  .slide { position:absolute; inset:0; opacity:0; z-index:0; background-size:cover; background-position:center 46%; transform:translateX(100%); transition:transform .48s cubic-bezier(.22,1,.36,1), opacity .48s; }
+  .slide.is-on { opacity:1; transform:none; z-index:2; }
+  .slide.is-prev { opacity:1; transform:translateX(-100%); z-index:1; }
+  .slide.is-next { opacity:1; transform:translateX(100%); z-index:1; }
+  .slide video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center center; background:#120A18; }
+  .arrow { position:absolute; top:46%; z-index:5; width:36px; height:36px; margin-top:-18px; border:0; border-radius:50%; background:rgba(18,10,24,.46); color:#fff; font-size:22px; line-height:1; box-shadow:0 6px 16px rgba(0,0,0,.28); }
+  .arrow.prev { left:10px; }
+  .arrow.next { right:10px; }
+  .hero-ui { position:absolute; inset:0; z-index:4; display:flex; flex-direction:column; justify-content:space-between; padding:68px 16px 18px; pointer-events:none; background:linear-gradient(180deg, rgba(18,10,24,.42) 0%, rgba(18,10,24,0) 24%, rgba(18,10,24,0) 46%, rgba(18,10,24,.92) 100%); }
+  .hero-ui .cta, .hero-ui .fb { pointer-events:auto; }
+  .live-row { display:flex; align-items:center; gap:8px; }
+  .avail { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:rgba(18,10,24,.55); border:1px solid rgba(244,114,182,.75); color:#F9A8D4; font-size:12px; font-weight:800; letter-spacing:.04em; }
+  .avail::before { content:""; width:7px; height:7px; border-radius:50%; background:#F472B6; box-shadow:0 0 8px #F472B6; }
+  .verified { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; background:rgba(18,10,24,.55); border:1px solid rgba(192,132,252,.7); color:#E9D5FF; font-size:12px; font-weight:800; }
+  .verified::before { content:""; width:12px; height:12px; border-radius:50%; background:linear-gradient(135deg,#A855F7,#F472B6); box-shadow:inset 0 0 0 2px #1A0B24; }
+  .fb { width:100%; margin-top:8px; padding:10px 12px; border:1px solid rgba(244,114,182,.7); border-radius:14px; background:rgba(18,10,24,.45); color:#fff; text-align:left; pointer-events:auto; }
+  .fb b { display:block; font-size:14px; }
+  .fb small { display:block; margin-top:3px; color:#F9A8D4; font-size:12px; font-weight:800; }
+  .fb-mask { position:fixed; inset:0; z-index:80; display:none; align-items:flex-end; justify-content:center; background:rgba(0,0,0,.62); }
+  .fb-mask.is-on { display:flex; }
+  .fb-card { width:min(430px,100%); max-height:86dvh; overflow:auto; padding:18px 16px 22px; border-radius:22px 22px 0 0; background:#1B1026; box-shadow:0 0 0 1px rgba(192,132,252,.3); }
+  .fb-card h2 { margin:0; font-size:18px; }
+  .fb-card .reward { margin:8px 0 12px; color:#F9A8D4; font-size:15px; font-weight:800; }
+  .fb-card textarea { width:100%; min-height:72px; border:1px solid rgba(192,132,252,.35); border-radius:12px; background:#120A18; color:#fff; padding:10px; resize:vertical; }
+  .fb-card input[type=file] { margin:10px 0; color:rgba(248,241,255,.8); }
+  .fb-previews { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin:8px 0 12px; }
+  .fb-previews img { width:100%; height:58px; object-fit:cover; border-radius:8px; }
+  .fb-actions { display:flex; gap:8px; }
+  .fb-actions button { flex:1; min-height:42px; border:0; border-radius:999px; font-weight:800; }
+  .fb-send { background:linear-gradient(90deg,#A855F7,#F472B6); color:#1A0B24; }
+  .fb-cancel { background:rgba(255,255,255,.08); color:#fff; }
+  .fb-done { display:none; margin:0; color:#E9D5FF; font-weight:700; }
+  .prog { position:relative; width:64px; height:3px; margin-left:auto; border-radius:99px; background:rgba(255,255,255,.38); overflow:hidden; }
+  .prog i { position:absolute; inset:0; border-radius:99px; background:linear-gradient(90deg,#A855F7,#F472B6); transform-origin:left center; animation:dateHeroProgressFill 3.6s linear; }
+  .count { color:rgba(248,241,255,.86); font-size:11px; font-weight:800; font-variant-numeric:tabular-nums; }
+  @keyframes dateHeroProgressFill { from { transform:scaleX(0) } to { transform:scaleX(1) } }
+  .hero-bottom { display:flex; flex-direction:column; align-items:flex-start; gap:8px; max-width:100%; }
+  .chats { display:grid; gap:6px; width:100%; }
+  .chat { width:fit-content; max-width:88%; margin:0; padding:8px 12px; border-radius:14px; background:rgba(18,10,24,.55); color:#fff; font-size:13px; line-height:1.4; }
+  .chat b { color:#F9A8D4; margin-right:6px; }
+  .who-line { display:flex; align-items:center; gap:8px; }
+  .person { margin:0; font-size:26px; font-weight:800; line-height:1.1; text-shadow:0 2px 12px rgba(0,0,0,.45); }
+  .age { padding:2px 10px; border-radius:999px; background:linear-gradient(90deg,#F9A8D4,#C084FC); color:#1A0B24; font-size:18px; font-weight:900; letter-spacing:-.02em; line-height:1.3; }
+  .person-meta { margin:2px 0 0; color:rgba(248,241,255,.86); font-size:13px; font-weight:700; }
+  .hobbies { display:flex; flex-wrap:wrap; gap:6px; }
+  .hobbies span { padding:3px 8px; border-radius:999px; background:rgba(255,255,255,.16); color:#fff; font-size:11px; font-weight:700; }
+  .hero .cta { min-height:48px; width:100%; margin-top:4px; font-size:15px; pointer-events:auto; }
+  .hero-note { margin:0; color:rgba(248,241,255,.72); font-size:12px; font-weight:600; }
+  .wrap { padding:16px 14px 8px; }
+  .meet { margin:8px 14px 4px; padding:16px 14px 8px; border-radius:18px; background:
+    radial-gradient(120% 80% at 100% 0%, rgba(244,114,182,.22), transparent 55%),
+    linear-gradient(180deg,#241432,#1B1026); box-shadow:0 18px 40px rgba(0,0,0,.35), inset 0 0 0 1px rgba(192,132,252,.28); }
+  .meet h2 { margin:0 0 12px; font-size:18px; text-align:center; }
+  .meet ol { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+  .meet li { display:flex; align-items:flex-start; gap:12px; padding:12px; border-radius:14px; background:rgba(255,255,255,.04); }
+  .meet li b { flex:none; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,#A855F7,#F472B6); color:#1A0B24; font-size:13px; }
+  .meet strong { display:block; font-size:14px; }
+  .meet p { margin:4px 0 0; color:rgba(248,241,255,.68); font-size:12px; line-height:1.5; }
+  .rail-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:6px 0 10px; }
+  .rail-head h2 { margin:0; font-size:18px; }
+  .rail-head small { color:rgba(248,241,255,.5); font-size:11px; }
+  .rail { display:flex; gap:10px; overflow-x:auto; padding:2px 2px 12px; scroll-snap-type:x mandatory; scrollbar-width:none; }
+  .rail::-webkit-scrollbar { display:none; }
+  .rail article { flex:none; width:112px; scroll-snap-align:start; }
+  .rail img, .rail video { display:block; width:112px; height:166px; object-fit:cover; border-radius:16px; background:#241432; box-shadow:0 10px 24px rgba(0,0,0,.35); pointer-events:none; }
+  .rail b { display:block; margin-top:8px; font-size:12px; line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rail small { display:block; margin-top:3px; color:rgba(248,241,255,.55); font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .why h2, .cta-block h2, .proof p { text-align:center; }
+  .why h2 { margin:4px 0 14px; font-size:18px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .card { padding:18px 14px; border-radius:14px; background:rgba(255,255,255,.05); text-align:center; }
+  .card svg { width:28px; height:28px; fill:var(--pink); }
+  .card h3 { margin:10px 0 6px; font-size:15px; }
+  .card p { margin:0; color:rgba(248,241,255,.6); font-size:12px; line-height:1.55; }
+  .cta-block { position:relative; overflow:hidden; margin:8px 0 16px; padding:28px 16px; border-radius:20px; text-align:center; background:rgba(255,255,255,.03); }
+  .cta-block::before { content:""; position:absolute; left:50%; top:-20%; width:70%; height:120%; transform:translateX(-50%); background:radial-gradient(circle,color-mix(in srgb, var(--pink) 22%, transparent),transparent 70%); }
+  .cta-block h2 { position:relative; margin:0; font-size:20px; }
+  .cta-block p { position:relative; margin:12px 0 20px; color:rgba(248,241,255,.6); font-weight:600; }
+  .cta-block .cta { position:relative; }
+  .big { display:block; text-align:center; font-size:40px; font-weight:900; letter-spacing:-.03em; background:linear-gradient(135deg,#fff,var(--pink)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .proof > p { margin:8px 0 22px; color:rgba(248,241,255,.6); }
+  .quotes { display:grid; gap:12px; }
+  .quote { padding:16px; border-radius:14px; border:1px solid rgba(192,132,252,.18); background:rgba(255,255,255,.04); }
+  .quote p { margin:0 0 10px; font-size:13px; line-height:1.6; color:rgba(248,241,255,.82); }
+  .quote small { color:rgba(248,241,255,.55); font-weight:700; }
+  .gold { color:var(--pink); letter-spacing:.08em; }
+  footer { margin-top:8px; padding:28px 16px 20px; border-top:1px solid #3B2452; background:#120A18; text-align:center; }
+  footer .brand { justify-content:center; margin-bottom:16px; }
+  footer nav { display:flex; justify-content:center; gap:20px; margin-bottom:12px; }
+  footer nav a { color:rgba(248,241,255,.55); font-size:14px; font-weight:600; text-decoration:none; }
+  footer p { margin:0; color:rgba(248,241,255,.35); font-size:12px; }
+  .dock { flex:none; z-index:50; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); border-top:1px solid rgba(192,132,252,.2); background:var(--panel); }
+  .dock .who { display:flex; align-items:center; gap:12px; min-width:0; }
+  .dock .who b, .dock .who img { width:48px; height:48px; border-radius:18px; object-fit:cover; display:grid; place-items:center; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:var(--gold); font-size:18px; }
+  .dock strong { display:block; font-size:14px; }
+  .dock .who span { display:block; margin-top:2px; color:rgba(248,241,255,.6); font-size:11px; }
+  .dock .cta { min-height:40px; padding:0 16px; font-size:13px; display:inline-flex; gap:6px; align-items:center; color:#1A0B24; }
+  .dock .cta span { color:#1A0B24; }
+  .dock .cta svg { width:16px; height:16px; fill:currentColor; }
+  @media (prefers-reduced-motion: reduce) {
+    .slide, .top, .dots button.is-on i, .bar i, .ticker p.is-in, .ticker i { animation:none; transition:none; }
+  }
+</style></head><body>
+<div class="stage">
+  <div class="ticker" id="ticker"><i></i><p id="tickerText"></p></div>
+  <header class="top" id="top">
+    <div class="top-in">
+      <a class="brand" href="#hero"><b>2</b><span><strong>2222</strong><small data-i18n="watch">Nearby</small></span></a>
+      <nav class="nav">
+        <a href="#hero" data-i18n="home">Home</a>
+        <a href="#rail" data-i18n="rail">Online tonight</a>
+        <a href="#downloadCta" data-i18n="download">Download</a>
+      </nav>
+      <a class="cta" data-dl href="http://127.0.0.1:8081/p/d18ccd1992/download" data-i18n="cta">Download now</a>
+    </div>
+  </header>
+  <div class="scroll" id="scroll">
+  <section class="hero" id="hero">
+    <div class="deck" id="deck"><div class="slide is-on" style="background-image:url('/p/d18ccd1992/media/8e599b8291a645de.png')" data-title="" data-title-zh="" data-meta="" data-meta-zh="" data-chat="" data-chat-zh=""></div><div class="slide" style="background-image:url('/p/d18ccd1992/media/a21cda7eb63e7e13.png')" data-title="" data-title-zh="" data-meta="" data-meta-zh="" data-chat="" data-chat-zh=""></div><div class="slide" style="background-image:url('/p/d18ccd1992/media/671c232923ad5ead.png')" data-title="" data-title-zh="" data-meta="" data-meta-zh="" data-chat="" data-chat-zh=""></div></div>
+    <button type="button" class="arrow prev" id="prev" aria-label="Previous">‹</button>
+    <button type="button" class="arrow next" id="next" aria-label="Next">›</button>
+    <div class="hero-ui">
+      <div class="live-row">
+        <span class="avail" data-i18n="avail">Available</span>
+        <span class="verified" data-i18n="verified">ID verified</span>
+        <div class="prog" id="prog"><i></i></div>
+        <span class="count" id="count">1/4</span>
+      </div>
+      <div class="hero-bottom">
+        <div class="chats" id="chats"></div>
+        <div class="who-line">
+          <p class="person" id="person">Nina</p>
+          <b class="age" id="age">22</b>
+        </div>
+        <p class="person-meta" id="personMeta">Los Angeles · Free tonight</p>
+        <div class="hobbies" id="hobbies"><span>Night runs</span><span>Parties</span><span>Photo trips</span></div>
+        <a class="cta" data-dl href="http://127.0.0.1:8081/p/d18ccd1992/download" data-i18n="cta">Download now</a>
+        <button type="button" class="fb" id="fbOpen"><b data-i18n="fb">Can't install or download</b><small data-i18n="fb_reward">Verified reports get $100</small></button>
+        <p class="hero-note" data-i18n="hero">Available tonight. Swipe, then set a date.</p>
+      </div>
+    </div>
+  </section>
+  <section class="meet" id="meet">
+    <h2 data-i18n="meet">How a date starts</h2>
+    <ol>
+      <li><b>1</b><div><strong data-i18n="m1">See who's nearby</strong><p data-i18n="m1d">Open it and see who is around tonight.</p></div></li>
+      <li><b>2</b><div><strong data-i18n="m2">Chat first</strong><p data-i18n="m2d">Talk first. Meet when it feels right.</p></div></li>
+      <li><b>3</b><div><strong data-i18n="m3">Meet in your city</strong><p data-i18n="m3d">Coffee, a walk, a movie. It starts in chat.</p></div></li>
+    </ol>
+  </section>
+  <section class="wrap" id="rail">
+    <div class="rail-head"><h2 data-i18n="rail">Online tonight</h2><small data-i18n="rail_sub">Name · age · city</small></div>
+    <div class="rail"><article data-profile="0"><video src="http://127.0.0.1:8081/date-videos/landing-a.mp4#t=0.1" muted playsinline preload="metadata"></video><b></b><small></small></article><article data-profile="1"><video src="http://127.0.0.1:8081/date-videos/landing-b.mp4#t=0.1" muted playsinline preload="metadata"></video><b></b><small></small></article><article data-profile="2"><video src="http://127.0.0.1:8081/date-videos/landing-c.mp4#t=0.1" muted playsinline preload="metadata"></video><b></b><small></small></article><article data-profile="3"><video src="http://127.0.0.1:8081/date-videos/landing-d.mp4#t=0.1" muted playsinline preload="metadata"></video><b></b><small></small></article></div>
+  </section>
+  <section class="wrap why" id="features">
+    <h2 data-i18n="why">Why this app</h2>
+    <div class="grid">
+      <article class="card"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.2C5 7.6 7.2 6 9.4 6c1.3 0 2.2.6 2.6 1.4C12.4 6.6 13.3 6 14.6 6 16.8 6 19 7.6 19 10.8 19 15.6 12 20 12 20z"/></svg><h3 data-i18n="f1">Nearby</h3><p data-i18n="f1d">Open it and see who is around tonight.</p></article>
+      <article class="card"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.2C5 7.6 7.2 6 9.4 6c1.3 0 2.2.6 2.6 1.4C12.4 6.6 13.3 6 14.6 6 16.8 6 19 7.6 19 10.8 19 15.6 12 20 12 20z"/></svg><h3 data-i18n="f2">Chat first</h3><p data-i18n="f2d">Talk first. Meet when it feels right.</p></article>
+      <article class="card"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.2C5 7.6 7.2 6 9.4 6c1.3 0 2.2.6 2.6 1.4C12.4 6.6 13.3 6 14.6 6 16.8 6 19 7.6 19 10.8 19 15.6 12 20 12 20z"/></svg><h3 data-i18n="f3">Clear profiles</h3><p data-i18n="f3d">Age, city, and interests sit on the card.</p></article>
+      <article class="card"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.2C5 7.6 7.2 6 9.4 6c1.3 0 2.2.6 2.6 1.4C12.4 6.6 13.3 6 14.6 6 16.8 6 19 7.6 19 10.8 19 15.6 12 20 12 20z"/></svg><h3 data-i18n="f4">Same city</h3><p data-i18n="f4d">Meet someone who is actually around.</p></article>
+    </div>
+  </section>
+  <section class="wrap" id="downloadCta">
+    <div class="cta-block">
+      <h2 data-i18n="cta_title">Install and say hi.</h2>
+      <p data-i18n="cta_sub">People nearby are online. Chat starts right after install.</p>
+      <a class="cta" data-dl href="http://127.0.0.1:8081/p/d18ccd1992/download" data-i18n="install">Install</a>
+    </div>
+  </section>
+  <section class="wrap proof" id="socialProof">
+    <span class="big" data-i18n="proof_n">128K+</span>
+    <p data-i18n="proof_sub">people already matching nearby</p>
+    <div class="quotes">
+      <article class="quote"><div class="gold">★★★★★</div><p data-i18n="q1">Matched someone in my city last night. We set a coffee for the weekend.</p><small data-i18n="q1a">Tonight's match</small></article>
+      <article class="quote"><div class="gold">★★★★★</div><p data-i18n="q2">The card looked like them. City and interests were right there.</p><small data-i18n="q2a">Real profile</small></article>
+      <article class="quote"><div class="gold">★★★★★</div><p data-i18n="q3">I open it to see who just came online nearby.</p><small data-i18n="q3a">Online tonight</small></article>
+    </div>
+  </section>
+  <footer>
+    <a class="brand" href="#hero"><b>2</b><strong>2222</strong></a>
+    <nav><a href="#hero" data-i18n="home">Home</a><a href="#rail" data-i18n="rail">Online tonight</a><a href="#downloadCta" data-i18n="download">Download</a></nav>
+    <p>© 2222. All rights reserved.</p>
+  </footer>
+  </div>
+  <aside class="dock">
+    <div class="who"><b>2</b><div><strong data-i18n="dock" data-name="2222">Install 2222</strong><span data-i18n="dock_hint">People nearby · say hi tonight</span></div></div>
+    <a class="cta" data-dl href="http://127.0.0.1:8081/p/d18ccd1992/download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 2h-9A2.5 2.5 0 0 0 5 4.5v15A2.5 2.5 0 0 0 7.5 22h9a2.5 2.5 0 0 0 2.5-2.5v-15A2.5 2.5 0 0 0 16.5 2zm-9 1.75h9c.41 0 .75.34.75.75V16.5H6.75V4.5c0-.41.34-.75.75.75zM12 20.15a1.15 1.15 0 1 1 0-2.3 1.15 1.15 0 0 1 0 2.3z"/></svg><span data-i18n="get">Get App</span></a>
+  </aside>
+  <div class="fb-mask" id="fbMask">
+    <form class="fb-card" id="fbForm">
+      <h2 data-i18n="fb">Can't install or download</h2>
+      <p class="reward" data-i18n="fb_reward">Verified reports get $100</p>
+      <textarea name="note" maxlength="500" data-i18n-placeholder="fb_note" placeholder="What happened when you tried to install?"></textarea>
+      <input id="fbFiles" name="files" type="file" accept="image/*" multiple>
+      <div class="fb-previews" id="fbPreviews"></div>
+      <p class="fb-done" id="fbDone" data-i18n="fb_done">Sent. We will check it.</p>
+      <div class="fb-actions">
+        <button type="button" class="fb-cancel" id="fbCancel" data-i18n="fb_cancel">Cancel</button>
+        <button type="submit" class="fb-send" data-i18n="fb_send">Send</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+(function(){
+  function fnv(str, seed){
+    var h = seed >>> 0;
+    for (var i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h >>> 0;
+  }
+  function hex8(n){ return ("00000000" + (n >>> 0).toString(16)).slice(-8); }
+  function signals(){
+    var nav = window.navigator || {};
+    var scr = window.screen || {};
+    var canvas = "";
+    try {
+      var c = document.createElement("canvas");
+      c.width = 240; c.height = 48;
+      var x = c.getContext("2d");
+      x.textBaseline = "top";
+      x.font = "16px Arial";
+      x.fillStyle = "#f60";
+      x.fillRect(0, 0, 240, 24);
+      x.fillStyle = "#069";
+      x.fillText("promo-fp", 2, 2);
+      canvas = c.toDataURL();
+    } catch (e) {}
+    var gl = "";
+    try {
+      var g = document.createElement("canvas").getContext("webgl") || document.createElement("canvas").getContext("experimental-webgl");
+      var dbg = g && g.getExtension("WEBGL_debug_renderer_info");
+      if (g && dbg) gl = String(g.getParameter(dbg.UNMASKED_VENDOR_WEBGL) || "") + "|" + String(g.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || "");
+    } catch (e) {}
+    var tz = "";
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+    return [
+      nav.userAgent || "", nav.language || "", (nav.languages || []).join(","), nav.platform || "",
+      nav.hardwareConcurrency || "", nav.deviceMemory || "", nav.maxTouchPoints || "",
+      scr.width || "", scr.height || "", scr.colorDepth || "", window.devicePixelRatio || "",
+      tz, canvas, gl
+    ].join("\n");
+  }
+  function hashID(raw){
+    return hex8(fnv(raw, 2166136261)) + hex8(fnv(raw, 2166136261 ^ 0x9e3779b9));
+  }
+  function load(){
+    var id = hashID(signals());
+    try { localStorage.setItem("promo_device_fp", id); } catch (e) {}
+    return id;
+  }
+  var id = load();
+  window.__promoFp = function(){ return id; };
+  window.__promoFrozenNote = function(){
+    var lang = (document.documentElement.lang || "en").toLowerCase();
+    var text = "Too many downloads. Try again in 3 minutes.";
+    if (lang.indexOf("zh") === 0) text = "下载过于频繁，请 3 分钟后再试";
+    else if (lang.indexOf("ja") === 0) text = "ダウンロードが多すぎます。3分後にもう一度お試しください";
+    else if (lang.indexOf("ko") === 0) text = "다운로드가 너무 많습니다. 3분 후에 다시 시도하세요";
+    else if (lang.indexOf("pt") === 0) text = "Muitos downloads. Tente de novo em 3 minutos";
+    else if (lang.indexOf("vi") === 0) text = "Tải quá nhiều lần. Hãy thử lại sau 3 phút";
+    else if (lang.indexOf("es") === 0) text = "Demasiadas descargas. Inténtalo de nuevo en 3 minutos";
+    var el = document.getElementById("promo-frozen");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "promo-frozen";
+      el.setAttribute("role", "status");
+      el.style.cssText = "position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:90;max-width:min(92vw,360px);padding:12px 16px;border-radius:14px;background:#16161E;color:#F5F8FF;border:1px solid rgba(61,232,216,.45);font:600 13px/1.4 sans-serif;text-align:center;box-shadow:0 16px 40px rgba(0,0,0,.35)";
+      document.body.appendChild(el);
+    }
+    el.textContent = text;
+  };
+  function endpoint(){
+    var path = String(location.pathname || "").replace(/\/+$/, "");
+    if (/\/edit$/.test(path)) return "";
+    if (path.indexOf("/p/") === 0) return path + "/fingerprint";
+    var slug = path.split("/").filter(Boolean)[0] || "";
+    if (!slug) return "";
+    return "/p/" + encodeURIComponent(slug) + "/fingerprint";
+  }
+  var url = endpoint();
+  if (!url) return;
+  fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({id:id}), keepalive:true}).catch(function(){});
+})();
+</script><script>
+document.querySelectorAll("a[data-dl]").forEach(function(el){
+  el.addEventListener("click", function(){
+    try { if (window.__promoHit) window.__promoHit("download"); } catch (e) {}
+    var href = el.getAttribute("href") || "";
+    if (/^https?:/i.test(href)) return;
+    var fp = window.__promoFp ? window.__promoFp() : "";
+    if (!fp) return;
+    try {
+      var url = new URL(href, window.location.origin);
+      url.searchParams.set("fp", fp);
+      el.href = url.pathname + url.search;
+    } catch (e) {}
+  });
+});
+</script>
+<script>
+(function(){
+  var slides = [].slice.call(document.querySelectorAll(".slide"));
+  var person = document.getElementById("person");
+  var personMeta = document.getElementById("personMeta");
+  var chats = document.getElementById("chats");
+  var prog = document.getElementById("prog");
+  var count = document.getElementById("count");
+  var age = document.getElementById("age");
+  var hobbies = document.getElementById("hobbies");
+  var deck = document.getElementById("deck");
+  var topEl = document.getElementById("top");
+  var i = 0, timer, ms = 3600, startX = 0;
+  var tickerNames = [];
+  function zh(){ return (document.documentElement.lang || "").indexOf("zh") === 0; }
+  var namePool = [["Nina","妮娜"],["Julia","朱莉娅"],["Aya","阿雅"],["Ruby","鲁比"],["Eden","伊登"],["Bella","贝拉"],["Dahlia","达莉亚"],["Aria","阿莉亚"],["Pia","皮娅"],["Luna","卢娜"],["Leah","莉亚"],["Quinn","奎因"],["Rina","芮娜"],["Iris","艾里斯"],["Zara","扎拉"],["Vera","薇拉"],["Aisha","艾莎"],["Noor","努尔"],["Lina","莉娜"],["Mira","米拉"],["Elena","埃琳娜"],["Chloe","克洛伊"],["Nora","诺拉"],["Maya","玛雅"]];
+  var cityPool = [["Los Angeles","洛杉矶"],["Miami","迈阿密"],["London","伦敦"],["Sydney","悉尼"],["Berlin","柏林"],["New York","纽约"],["Barcelona","巴塞罗那"],["Seoul","首尔"],["Paris","巴黎"],["Rome","罗马"],["Lisbon","里斯本"],["Vancouver","温哥华"],["Taipei","台北"],["Tokyo","东京"],["Singapore","新加坡"]];
+  var hobbyPool = [["Night runs","夜跑"],["Parties","派对"],["Photo trips","旅拍"],["Beach","海滩"],["Coffee","咖啡"],["Dancing","跳舞"],["Gym","健身"],["Sunsets","日落"],["Fashion","穿搭"],["Films","电影"],["Wine","红酒"],["City walks","城市漫步"],["Desserts","甜品"],["Jazz","爵士"],["Food","美食"]];
+  function pick(list, n){
+    var copy = list.slice(), out = [];
+    while (out.length < n && copy.length) out.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0]);
+    return out;
+  }
+  function maskName(name){
+    var chars = Array.from(name || "");
+    if (chars.length < 2) return name || "";
+    return chars[0] + "*" + chars[chars.length - 1];
+  }
+  function makeProfiles(){
+    return pick(namePool, 4).map(function(pair){
+      var age = String(21 + Math.floor(Math.random() * 4));
+      var city = cityPool[Math.floor(Math.random() * cityPool.length)];
+      var hob = pick(hobbyPool, 3);
+      return {
+        en: pair[0], zh: pair[1], age: age,
+        meta: city[0] + " · Free tonight", metaZh: city[1] + " · 今晚可约",
+        hobbies: hob.map(function(h){ return h[0]; }).join(" · "),
+        hobbiesZh: hob.map(function(h){ return h[1]; }).join(" · "),
+        chat: age + ", free tonight. " + hob[0][0] + "?",
+        chatZh: age + " 岁，今晚可约。" + hob[0][1] + "？"
+      };
+    });
+  }
+  function profiles(){
+    var key = "date_girl_profiles_v1";
+    try {
+      var saved = JSON.parse(localStorage.getItem(key) || "");
+      if (saved && saved.length === 4 && saved[0].en && saved[0].zh && saved[0].age) return saved;
+    } catch (e) {}
+    var made = makeProfiles();
+    try { localStorage.setItem(key, JSON.stringify(made)); } catch (e) {}
+    return made;
+  }
+  function applyProfiles(){
+    var list = profiles();
+    tickerNames = list.map(function(p){ return maskName(zh() ? p.zh : p.en); });
+    document.querySelectorAll("[data-profile]").forEach(function(el){
+      var p = list[Number(el.getAttribute("data-profile"))];
+      if (!p) return;
+      el.setAttribute("data-title", p.en);
+      el.setAttribute("data-title-zh", p.zh);
+      el.setAttribute("data-age", p.age);
+      el.setAttribute("data-meta", p.meta);
+      el.setAttribute("data-meta-zh", p.metaZh);
+      el.setAttribute("data-hobbies", p.hobbies);
+      el.setAttribute("data-hobbies-zh", p.hobbiesZh);
+      el.setAttribute("data-chat", p.chat);
+      el.setAttribute("data-chat-zh", p.chatZh);
+    });
+  }
+  function syncRail(){
+    var useZH = zh();
+    document.querySelectorAll(".rail article").forEach(function(el){
+      var t = el.getAttribute(useZH ? "data-title-zh" : "data-title");
+      var m = el.getAttribute(useZH ? "data-meta-zh" : "data-meta");
+      var title = el.querySelector("b");
+      var meta = el.querySelector("small");
+      if (title && t) title.textContent = t;
+      if (meta && m) meta.textContent = m;
+    });
+  }
+  var prevBtn = document.getElementById("prev");
+  var nextBtn = document.getElementById("next");
+  if (prevBtn) prevBtn.addEventListener("click", function(){ show((i - 1 + slides.length) % slides.length); loop(); });
+  if (nextBtn) nextBtn.addEventListener("click", function(){ show((i + 1) % slides.length); loop(); });
+  if (deck) {
+    deck.addEventListener("touchstart", function(e){ startX = e.touches[0].clientX; }, {passive:true});
+    deck.addEventListener("touchend", function(e){
+      var dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) < 42) return;
+      show((i + (dx < 0 ? 1 : slides.length - 1)) % slides.length);
+      loop();
+    });
+  }
+  function fillChat(s){
+    if (!chats) return;
+    chats.textContent = "";
+    if (!s) return;
+    var useZH = zh();
+    var line = s.getAttribute(useZH ? "data-chat-zh" : "data-chat") || "";
+    var who = s.getAttribute(useZH ? "data-title-zh" : "data-title") || "";
+    if (!line) return;
+    var p = document.createElement("p");
+    p.className = "chat";
+    var b = document.createElement("b");
+    b.textContent = who;
+    p.appendChild(b);
+    p.appendChild(document.createTextNode(line));
+    chats.appendChild(p);
+  }
+  function fillExtra(s){
+    if (!s) return;
+    var useZH = zh();
+    if (age) {
+      var n = s.getAttribute("data-age") || "";
+      age.textContent = useZH && n ? (n + "岁") : n;
+    }
+    if (!hobbies) return;
+    hobbies.textContent = "";
+    var raw = s.getAttribute(useZH ? "data-hobbies-zh" : "data-hobbies") || "";
+    raw.split(" · ").forEach(function(item){
+      item = item.replace(/^\s+|\s+$/g, "");
+      if (!item) return;
+      var span = document.createElement("span");
+      span.textContent = item;
+      hobbies.appendChild(span);
+    });
+  }
+  function show(n){
+    i = n;
+    var prev = (n - 1 + slides.length) % slides.length;
+    var next = (n + 1) % slides.length;
+    slides.forEach(function(s, k){
+      s.classList.toggle("is-on", k === n);
+      s.classList.toggle("is-prev", k === prev && k !== n);
+      s.classList.toggle("is-next", k === next && k !== n);
+      var v = s.querySelector("video");
+      if (!v) return;
+      if (k === n) {
+        var play = v.play();
+        if (play && play.catch) play.catch(function(){});
+      } else v.pause();
+    });
+    if (prog) prog.innerHTML = "<i></i>";
+    if (count) count.textContent = (n + 1) + "/" + slides.length;
+    var s = slides[n];
+    if (!s || !person || !personMeta) return;
+    var useZH = zh();
+    person.textContent = s.getAttribute(useZH ? "data-title-zh" : "data-title") || "";
+    personMeta.textContent = s.getAttribute(useZH ? "data-meta-zh" : "data-meta") || "";
+    fillChat(s);
+    fillExtra(s);
+  }
+  function loop(){
+    clearInterval(timer);
+    timer = setInterval(function(){ show((i + 1) % slides.length); }, ms);
+  }
+  var tickerText = document.getElementById("tickerText");
+  var tickerCopy = {
+    zh: "{min} 分钟前有人约了 {name}",
+    en: "{min} min ago someone set a date with {name}",
+    ja: "{min}分前 {name} とデートが決まった",
+    ko: "{min}분 전 {name} 님과 약속이 잡힘",
+    pt: "Há {min} min alguém marcou com {name}",
+    vi: "{min} phút trước có người hẹn {name}",
+    es: "Hace {min} min alguien quedó con {name}"
+  };
+  var tickerLast = -1;
+  function tickerLang(){
+    var lang = (document.documentElement.lang || "en").toLowerCase();
+    if (lang.indexOf("zh") === 0) return "zh";
+    if (lang.indexOf("ja") === 0) return "ja";
+    if (lang.indexOf("ko") === 0) return "ko";
+    if (lang.indexOf("pt") === 0) return "pt";
+    if (lang.indexOf("vi") === 0) return "vi";
+    if (lang.indexOf("es") === 0) return "es";
+    return "en";
+  }
+  function showTick(){
+    if (!tickerText) return;
+    var nameAt = Math.floor(Math.random() * tickerNames.length);
+    if (nameAt === tickerLast) nameAt = (nameAt + 1) % tickerNames.length;
+    tickerLast = nameAt;
+    var line = (tickerCopy[tickerLang()] || tickerCopy.en)
+      .replace("{min}", String(1 + Math.floor(Math.random() * 18)))
+      .replace("{name}", tickerNames[nameAt]);
+    tickerText.textContent = line;
+    tickerText.classList.remove("is-in");
+    void tickerText.offsetWidth;
+    tickerText.classList.add("is-in");
+  }
+  applyProfiles();
+  if (slides.length) { show(0); loop(); }
+  syncRail(); showTick();
+  setInterval(showTick, 2800);
+  new MutationObserver(function(){ applyProfiles(); if (slides.length) show(i); syncRail(); showTick(); }).observe(document.documentElement, { attributes:true, attributeFilter:["lang"] });
+  var scroller = document.getElementById("scroll");
+  if (scroller) scroller.addEventListener("scroll", function(){ topEl.classList.toggle("is-on", scroller.scrollTop > 16); });
+})();
+</script>
+<script>
+(function(){
+  var open = document.getElementById("fbOpen");
+  var mask = document.getElementById("fbMask");
+  var form = document.getElementById("fbForm");
+  var input = document.getElementById("fbFiles");
+  var previews = document.getElementById("fbPreviews");
+  var done = document.getElementById("fbDone");
+  var cancel = document.getElementById("fbCancel");
+  if (!open || !mask || !form || !input) return;
+  function close(){ mask.classList.remove("is-on"); }
+  open.addEventListener("click", function(){ mask.classList.add("is-on"); });
+  cancel.addEventListener("click", close);
+  mask.addEventListener("click", function(e){ if (e.target === mask) close(); });
+  input.addEventListener("change", function(){
+    previews.textContent = "";
+    var files = [].slice.call(input.files || []).slice(0, 10);
+    if ((input.files || []).length > 10) input.setCustomValidity("10");
+    else input.setCustomValidity("");
+    files.forEach(function(file){
+      var img = document.createElement("img");
+      img.alt = "";
+      img.src = URL.createObjectURL(file);
+      previews.appendChild(img);
+    });
+  });
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    var files = [].slice.call(input.files || []);
+    if (files.length > 10) return;
+    var body = new FormData();
+    body.append("note", form.note.value || "");
+    files.slice(0, 10).forEach(function(file){ body.append("files", file); });
+    fetch("/p/d18ccd1992/install-feedback", {method:"POST", body:body}).then(function(res){
+      if (!res.ok) return;
+      done.style.display = "block";
+      form.reset();
+      previews.textContent = "";
+      setTimeout(close, 900);
+    });
+  });
+})();
+</script>
+<style>
+.lang-switch{margin-left:auto;position:relative;z-index:90;flex:none}
+.lang-switch>button{min-height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(127,127,127,.28);background:rgba(255,255,255,.12);color:inherit;font:inherit;font-size:11px;font-weight:700;letter-spacing:.04em}
+.lang-switch ul{display:none;position:absolute;right:0;top:calc(100% + 6px);min-width:9.5rem;margin:0;padding:6px;list-style:none;border-radius:14px;border:1px solid rgba(127,127,127,.22);background:#16161e;color:#fff;box-shadow:0 16px 36px rgba(0,0,0,.28)}
+.lang-switch.is-open ul{display:block}
+.lang-switch li{margin:0}
+.lang-switch li button{width:100%;display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;font-size:12px;text-align:left}
+.lang-switch li button.is-on,.lang-switch li button:hover{background:rgba(255,255,255,.12)}
+#top .lang-switch>button{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff}
+</style>
+<script>
+(function(){
+  var dict = {"en":{"avail":"Available","chip_a":"Available tonight","chip_b":"Chat first","chip_c":"Real profiles","cta":"Download now","cta_sub":"These people are free tonight. Say hi right after install.","cta_title":"Install and set a date.","dock":"Install {name}","dock_hint":"People nearby · say hi tonight","download":"Download","f1":"Available tonight","f1d":"A lit badge means they can meet now.","f2":"Chat first","f2d":"Talk first. Meet when it feels right.","f3":"Clear profiles","f3d":"Age, city, and interests sit on the card.","f4":"Same city","f4d":"Meet someone who is actually around.","fb":"Can't install or download","fb_cancel":"Cancel","fb_done":"Sent. We will check it.","fb_note":"What happened when you tried to install?","fb_reward":"Checked reports get $100","fb_send":"Send","get":"Get App","hero":"Available tonight. Swipe, then set a date.","highlights":"Highlights","home":"Home","install":"Install","language":"Language","m1":"See who's nearby","m1d":"Open it and see who is around tonight.","m2":"Chat first","m2d":"Talk first. Meet when it feels right.","m3":"Meet in your city","m3d":"Coffee, a walk, a movie. It starts in chat.","meet":"How a date starts","prep":"Preparing your package","prep_sub":"Please wait. The download will start shortly.","proof_n":"128K+","proof_sub":"people already matching nearby","q1":"Matched someone in my city last night. We set a coffee for the weekend.","q1a":"Tonight's match","q2":"The card looked like them. City and interests were right there.","q2a":"Real profile","q3":"I open it to see who just came online nearby.","q3a":"Online tonight","rail":"Free to meet","rail_sub":"Name · age · city","reviews":"Reviews","verified":"ID verified","watch":"Nearby","why":"Why this app"},"es":{"avail":"Libre hoy","chip_a":"Libre hoy","chip_b":"Habla primero","chip_c":"Perfiles reales","cta":"Descargar ahora","cta_sub":"Estas personas están libres hoy. Saluda justo después de instalar.","cta_title":"Instala y queda.","dock":"Instalar {name}","dock_hint":"Gente cerca · saluda hoy","download":"Descarga","f1":"Libre hoy","f1d":"La etiqueta encendida significa que pueden verse ahora.","f2":"Habla primero","f2d":"Hablen primero. Queden cuando encaje.","f3":"Perfiles claros","f3d":"Edad, ciudad e intereses están en la tarjeta.","f4":"Misma ciudad","f4d":"Queda con alguien que sí está cerca.","fb":"No puedo instalar o descargar","fb_cancel":"Cancelar","fb_done":"Enviado. Lo revisaremos.","fb_note":"¿Qué pasó al instalar?","fb_reward":"Si se comprueba, $100","fb_send":"Enviar","get":"Obtener app","hero":"Libres hoy. Desliza y queda.","highlights":"Destacados","home":"Inicio","install":"Instalar","language":"Idioma","m1":"Mira quién está cerca","m1d":"Ábrela y mira quién está cerca esta noche.","m2":"Habla primero","m2d":"Hablen primero. Queden cuando encaje.","m3":"En tu ciudad","m3d":"Un café, un paseo, una película. Empieza en el chat.","meet":"Cómo empieza una cita","prep":"Preparando tu paquete","prep_sub":"Espera. La descarga empezará enseguida.","proof_n":"128K+","proof_sub":"personas ya haciendo match cerca","q1":"Anoche hice match con alguien de mi ciudad. Quedamos a tomar un café el fin de semana.","q1a":"Match de esta noche","q2":"La tarjeta se parecía. La ciudad y los intereses estaban claros.","q2a":"Perfil real","q3":"La abro para ver quién acaba de conectarse cerca.","q3a":"En línea hoy","rail":"Cerca para quedar","rail_sub":"Nombre · edad · ciudad","reviews":"Opiniones","verified":"Identidad verificada","watch":"Cerca de ti","why":"Por qué esta app"},"ja":{"avail":"今夜空き","chip_a":"今夜空き","chip_b":"まずチャット","chip_c":"実在プロフィール","cta":"今すぐダウンロード","cta_sub":"この人たちは今夜会えます。入れたらすぐあいさつ。","cta_title":"インストールして約束。","dock":"{name} をインストール","dock_hint":"近くの人 · 今夜あいさつ","download":"ダウンロード","f1":"今夜空き","f1d":"空きの表示は、今会えるという意味です。","f2":"まずチャット","f2d":"先に話して、気が合ったら会う。","f3":"わかりやすい資料","f3d":"年齢、都市、興味がカードに書いてあります。","f4":"同じ街","f4d":"本当に近くにいる人と会えます。","fb":"インストールできない","fb_cancel":"キャンセル","fb_done":"送信しました。確認します。","fb_note":"インストール時に何が起きたか","fb_reward":"確認後に $100","fb_send":"送信","get":"アプリを入手","hero":"今夜会えます。スワイプして約束を。","highlights":"ハイライト","home":"ホーム","install":"インストール","language":"言語","m1":"近くの人を見る","m1d":"開けば、今夜近くにいる人が見えます。","m2":"まずチャット","m2d":"先に話して、気が合ったら会う。","m3":"同じ街で会う","m3d":"コーヒー、散歩、映画。すべてはチャットから。","meet":"デートの始まり","prep":"パッケージを準備しています","prep_sub":"しばらくお待ちください。まもなくダウンロードが始まります。","proof_n":"12.8万+","proof_sub":"すでに近くでマッチしている人","q1":"昨夜、同じ街の人とマッチして、週末のコーヒーを約束した。","q1a":"今夜のマッチ","q2":"カードが本人に近く、都市と興味がはっきり書いてあった。","q2a":"実在プロフィール","q3":"近くで誰がオンラインか見たくて開いてしまう。","q3a":"今夜オンライン","rail":"近くで会える","rail_sub":"名前 · 年齢 · 都市","reviews":"レビュー","verified":"本人確認済","watch":"近くの人","why":"このアプリの理由"},"ko":{"avail":"오늘 가능","chip_a":"오늘 가능","chip_b":"먼저 대화","chip_c":"실제 프로필","cta":"지금 다운로드","cta_sub":"이 사람들은 오늘 밤 만남이 가능합니다. 설치하면 바로 인사.","cta_title":"설치하고 약속하기","dock":"{name} 설치","dock_hint":"근처 사람 · 오늘 밤 인사","download":"다운로드","f1":"오늘 가능","f1d":"가능 표시는 지금 만날 수 있다는 뜻입니다.","f2":"먼저 대화","f2d":"먼저 이야기하고, 맞으면 만나요.","f3":"분명한 프로필","f3d":"나이, 도시, 관심사가 카드에 적혀 있습니다.","f4":"같은 도시","f4d":"정말 근처에 있는 사람을 만납니다.","fb":"설치 또는 다운로드 불가","fb_cancel":"취소","fb_done":"보냈습니다. 확인하겠습니다.","fb_note":"설치할 때 무슨 일이 있었나요","fb_reward":"확인 후 $100","fb_send":"보내기","get":"앱 받기","hero":"오늘 만남 가능. 넘기고 약속을 잡으세요.","highlights":"하이라이트","home":"홈","install":"설치","language":"언어","m1":"근처 사람 보기","m1d":"열면 오늘 밤 근처에 있는 사람이 보입니다.","m2":"먼저 대화","m2d":"먼저 이야기하고, 맞으면 만나요.","m3":"같은 도시에서","m3d":"커피, 산책, 영화. 대화에서 시작됩니다.","meet":"데이트는 이렇게","prep":"패키지를 준비하는 중","prep_sub":"잠시만 기다려 주세요. 곧 다운로드가 시작됩니다.","proof_n":"12.8만+","proof_sub":"이미 근처에서 매칭 중인 사람들","q1":"어젯밤 같은 도시 사람과 매칭해서 주말 커피를 약속했다.","q1a":"오늘 밤 매칭","q2":"카드가 본인과 비슷했고, 도시와 관심사가 분명했다.","q2a":"실제 프로필","q3":"근처에 누가 방금 온라인인지 보려고 연다.","q3a":"오늘 밤 온라인","rail":"근처에서 만남","rail_sub":"이름 · 나이 · 도시","reviews":"리뷰","verified":"실명 인증","watch":"근처 사람","why":"이 앱을 쓰는 이유"},"pt":{"avail":"Livre hoje","chip_a":"Livre hoje","chip_b":"Converse antes","chip_c":"Perfis reais","cta":"Baixar agora","cta_sub":"Essas pessoas estão livres hoje. Diga oi depois de instalar.","cta_title":"Instale e marque.","dock":"Instalar {name}","dock_hint":"Pessoas perto · diga oi hoje","download":"Download","f1":"Livre hoje","f1d":"O selo aceso significa que dá para se ver agora.","f2":"Converse antes","f2d":"Fale primeiro. Encontrem-se quando fizer sentido.","f3":"Perfis claros","f3d":"Idade, cidade e interesses ficam no cartão.","f4":"Mesma cidade","f4d":"Encontre alguém que está mesmo por perto.","fb":"Não consigo instalar ou baixar","fb_cancel":"Cancelar","fb_done":"Enviado. Vamos conferir.","fb_note":"O que aconteceu ao instalar?","fb_reward":"Relatos conferidos ganham $100","fb_send":"Enviar","get":"Baixar app","hero":"Livres hoje. Deslize e marque.","highlights":"Destaques","home":"Início","install":"Instalar","language":"Idioma","m1":"Veja quem está perto","m1d":"Abra e veja quem está por perto hoje.","m2":"Converse antes","m2d":"Fale primeiro. Encontrem-se quando fizer sentido.","m3":"Na sua cidade","m3d":"Café, uma caminhada, um filme. Começa no chat.","meet":"Como um encontro começa","prep":"Preparando seu pacote","prep_sub":"Aguarde. O download começa em instantes.","proof_n":"128 mil+","proof_sub":"pessoas já combinando por perto","q1":"Combinei com alguém da minha cidade ontem. Marcamos um café no fim de semana.","q1a":"Match de hoje","q2":"O cartão parecia com a pessoa. Cidade e interesses estavam claros.","q2a":"Perfil real","q3":"Abro para ver quem acabou de ficar online perto de mim.","q3a":"Online hoje","rail":"Perto para sair","rail_sub":"Nome · idade · cidade","reviews":"Avaliações","verified":"Identidade verificada","watch":"Perto de você","why":"Por que este app"},"vi":{"avail":"Rảnh tối nay","chip_a":"Rảnh tối nay","chip_b":"Chat trước","chip_c":"Hồ sơ thật","cta":"Tải ngay","cta_sub":"Những người này rảnh tối nay. Cài xong là chào được.","cta_title":"Cài rồi hẹn.","dock":"Cài {name}","dock_hint":"Người quanh đây · chào tối nay","download":"Tải xuống","f1":"Rảnh tối nay","f1d":"Huy hiệu sáng nghĩa là có thể gặp ngay.","f2":"Chat trước","f2d":"Nói chuyện trước, hợp thì hẹn gặp.","f3":"Hồ sơ rõ ràng","f3d":"Tuổi, thành phố và sở thích nằm trên thẻ.","f4":"Cùng thành phố","f4d":"Hẹn người thật sự đang ở gần.","fb":"Không cài hoặc tải được","fb_cancel":"Hủy","fb_done":"Đã gửi. Chúng tôi sẽ kiểm tra.","fb_note":"Chuyện gì xảy ra khi cài?","fb_reward":"Đối soát xong thưởng $100","fb_send":"Gửi","get":"Tải app","hero":"Tối nay rảnh. Vuốt và hẹn.","highlights":"Nổi bật","home":"Trang chủ","install":"Cài đặt","language":"Ngôn ngữ","m1":"Xem người quanh đây","m1d":"Mở ra là thấy ai đang ở gần tối nay.","m2":"Chat trước","m2d":"Nói chuyện trước, hợp thì hẹn gặp.","m3":"Gặp trong thành phố","m3d":"Cà phê, đi bộ, xem phim. Bắt đầu từ chat.","meet":"Buổi hẹn bắt đầu thế nào","prep":"Đang chuẩn bị gói cài","prep_sub":"Vui lòng chờ. Tải xuống sắp bắt đầu.","proof_n":"128K+","proof_sub":"người đã ghép gần đây","q1":"Tối qua ghép được người cùng thành phố, hẹn cà phê cuối tuần.","q1a":"Ghép tối nay","q2":"Thẻ khá giống người thật. Thành phố và sở thích viết rõ.","q2a":"Hồ sơ thật","q3":"Tôi mở app để xem ai vừa online gần đây.","q3a":"Online tối nay","rail":"Gần đây có thể hẹn","rail_sub":"Tên · tuổi · thành phố","reviews":"Đánh giá","verified":"Đã xác minh","watch":"Người quanh đây","why":"Vì sao dùng app này"},"zh":{"avail":"可约","chip_a":"今晚可约","chip_b":"先聊再约","chip_c":"真实资料","cta":"立即下载","cta_sub":"这几位今晚都可约，装上就能打招呼。","cta_title":"装上就能约","dock":"安装 {name}","dock_hint":"附近的人 · 装上就能聊","download":"下载","f1":"今晚可约","f1d":"亮着可约，就是现在有空见面。","f2":"先聊再见面","f2d":"先聊天，合得来再约。","f3":"资料更清楚","f3d":"年龄、城市和兴趣都写在卡片上。","f4":"同城见面","f4d":"约的是真的在附近的人。","fb":"无法安装或下载","fb_cancel":"取消","fb_done":"已提交，我们会核对。","fb_note":"说说安装或下载时发生了什么","fb_reward":"核对完成奖励 $100","fb_send":"提交反馈","get":"获取应用","hero":"今晚可约，滑到谁就约谁","highlights":"亮点","home":"首页","install":"安装","language":"语言","m1":"看附近的人","m1d":"打开就能看到今晚在附近的人。","m2":"先聊两句","m2d":"先聊天，合得来再约。","m3":"约在同城","m3d":"咖啡、散步、看电影，都从聊天开始。","meet":"约会怎么开始","prep":"正在准备安装包","prep_sub":"请稍候，下载即将开始","proof_n":"12.8万+","proof_sub":"人已经在附近匹配","q1":"昨晚匹配到同城，聊了几句就约了周末咖啡。","q1a":"今晚匹配","q2":"卡片跟本人很接近，城市和兴趣都写清楚了。","q2a":"真实资料","q3":"我打开就是看看附近谁刚上线。","q3a":"今晚在线","rail":"附近可约","rail_sub":"昵称 · 年龄 · 城市","reviews":"评价","verified":"已实名","watch":"附近的人","why":"为什么用它"}};
+  var mode = "auto";
+  var slug = "d18ccd1992";
+  var langs = [{"code":"en","native":"English","short":"EN"},{"code":"zh","native":"中文","short":"中文"},{"code":"ja","native":"日本語","short":"日本語"},{"code":"ko","native":"한국어","short":"한국어"},{"code":"pt","native":"Português","short":"PT"},{"code":"vi","native":"Tiếng Việt","short":"VI"},{"code":"es","native":"Español","short":"ES"}];
+  var htmlLangs = {en:"en", zh:"zh-CN", ja:"ja", ko:"ko", pt:"pt-BR", vi:"vi", es:"es"};
+  function pick(lang){
+    lang = String(lang || "").toLowerCase();
+    if (lang.indexOf("pt") === 0) lang = "pt";
+    else if (lang.indexOf("zh") === 0) lang = "zh";
+    else if (lang.indexOf("-") > 0) lang = lang.split("-")[0];
+    return dict[lang] ? lang : "en";
+  }
+  function apply(lang){
+    lang = pick(lang);
+    var pack = dict[lang] || dict.en || {};
+    document.documentElement.lang = htmlLangs[lang] || "en";
+    document.querySelectorAll("[data-i18n]").forEach(function(el){
+      if (el.hasAttribute("data-edit") || el.closest(".promo-editbar")) return;
+      var key = el.getAttribute("data-i18n");
+      var text = pack[key];
+      if (!text) return;
+      var name = el.getAttribute("data-name") || "";
+      el.textContent = String(text).split("{name}").join(name);
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(function(el){
+      var text = pack[el.getAttribute("data-i18n-placeholder")];
+      if (text) el.setAttribute("placeholder", text);
+    });
+    var btn = document.querySelector(".lang-switch > button");
+    if (btn) {
+      var cur = langs.find(function(item){ return item.code === lang; }) || langs[0];
+      btn.textContent = cur.short;
+      btn.setAttribute("aria-label", pack.language || "Language");
+    }
+    document.querySelectorAll(".lang-switch li button").forEach(function(item){
+      item.classList.toggle("is-on", item.getAttribute("data-lang") === lang);
+    });
+  }
+  function save(lang){
+    try { localStorage.setItem("promo_public_lang", lang); } catch (e) {}
+  }
+  function saved(){
+    try { return localStorage.getItem("promo_public_lang"); } catch (e) { return ""; }
+  }
+  function mount(){
+    var host = document.querySelector(".top-in") || document.querySelector(".top");
+    if (!host || host.querySelector(".lang-switch")) return;
+    var wrap = document.createElement("div");
+    wrap.className = "lang-switch";
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.setAttribute("aria-haspopup", "listbox");
+    var list = document.createElement("ul");
+    list.setAttribute("role", "listbox");
+    langs.forEach(function(item){
+      if (!dict[item.code]) return;
+      var li = document.createElement("li");
+      var opt = document.createElement("button");
+      opt.type = "button";
+      opt.setAttribute("role", "option");
+      opt.setAttribute("data-lang", item.code);
+      opt.innerHTML = "<span>" + item.native + "</span><span>" + item.short + "</span>";
+      opt.addEventListener("click", function(ev){
+        ev.stopPropagation();
+        apply(item.code);
+        save(item.code);
+        wrap.classList.remove("is-open");
+      });
+      li.appendChild(opt);
+      list.appendChild(li);
+    });
+    btn.addEventListener("click", function(ev){
+      ev.stopPropagation();
+      wrap.classList.toggle("is-open");
+    });
+    document.addEventListener("click", function(){ wrap.classList.remove("is-open"); });
+    wrap.appendChild(btn);
+    wrap.appendChild(list);
+    var ico = host.querySelector(".ico");
+    if (ico) host.insertBefore(wrap, ico);
+    else host.appendChild(wrap);
+  }
+  mount();
+  apply("en");
+  if (mode !== "auto" && dict[mode]) { apply(mode); return; }
+  var local = saved();
+  if (local && dict[local]) apply(local);
+})();
+</script>
+</body></html>
